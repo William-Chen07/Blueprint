@@ -60,7 +60,7 @@ Caddy (ports 80/443, automatic certificate)
    |  reverse proxy
    v
 Next.js app on port 3000 (managed by pm2)
-   |-- Pages: landing, projects, my-workspace, ...
+   |-- Pages: landing, projects, dashboard, ...
    |-- /api/plan          -> Gemini (generate a plan)
    |-- /api/chat          -> Gemini (mentor replies)
    |-- /api/auth/*        -> Auth.js -> GitHub OAuth

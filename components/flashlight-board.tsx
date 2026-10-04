@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useState, useSyncExternalStore } from "react";
+import { createContext, type CSSProperties, type ReactNode, useContext, useState, useSyncExternalStore } from "react";
 import { Lightbulb, Moon } from "lucide-react";
 
 interface FlashlightBoardProps {
@@ -13,6 +13,7 @@ interface FlashlightStyle extends CSSProperties {
 }
 
 type LightingMode = "lamp" | "flashlight";
+const LightingContext = createContext<LightingMode>("lamp");
 
 function getSavedLightingMode(): LightingMode {
   if (typeof window !== "undefined") {
@@ -37,11 +38,6 @@ export default function FlashlightBoard({ children }: FlashlightBoardProps) {
     () => "lamp",
   );
 
-  function changeMode(nextMode: LightingMode) {
-    window.localStorage.setItem("buildfolio-lighting", nextMode);
-    window.dispatchEvent(new Event("storage"));
-  }
-
   return (
     <div
       className={`flashlight-board wood-texture relative min-h-screen overflow-hidden lighting-${mode}`}
@@ -58,16 +54,28 @@ export default function FlashlightBoard({ children }: FlashlightBoardProps) {
         });
       }}
     >
-      <div className="lighting-controls" role="group" aria-label="Lighting mode">
-        <button type="button" onClick={() => changeMode("lamp")} className={mode === "lamp" ? "active" : ""} aria-pressed={mode === "lamp"}>
-          <Lightbulb className="size-3.5" /> Lamp
-        </button>
-        <button type="button" onClick={() => changeMode("flashlight")} className={mode === "flashlight" ? "active" : ""} aria-pressed={mode === "flashlight"}>
-          <Moon className="size-3.5" /> Flashlight
-        </button>
-      </div>
-      {children}
+      <LightingContext.Provider value={mode}>{children}</LightingContext.Provider>
       <div className={`lighting-overlay overlay-${mode}`} aria-hidden="true" />
+    </div>
+  );
+}
+
+export function LightingControls() {
+  const mode = useContext(LightingContext);
+
+  function changeMode(nextMode: LightingMode) {
+    window.localStorage.setItem("buildfolio-lighting", nextMode);
+    window.dispatchEvent(new Event("storage"));
+  }
+
+  return (
+    <div className="lighting-controls" role="group" aria-label="Lighting mode">
+      <button type="button" onClick={() => changeMode("lamp")} className={mode === "lamp" ? "active" : ""} aria-pressed={mode === "lamp"}>
+        <Lightbulb className="size-3.5" /> Lamp
+      </button>
+      <button type="button" onClick={() => changeMode("flashlight")} className={mode === "flashlight" ? "active" : ""} aria-pressed={mode === "flashlight"}>
+        <Moon className="size-3.5" /> Flashlight
+      </button>
     </div>
   );
 }
