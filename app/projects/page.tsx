@@ -32,7 +32,7 @@ export default function ProjectsPage() {
             <p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#55493c]">02 / MAKE IT YOURS</p>
             <h2 className="mt-4 text-xl font-bold">Bring your own idea</h2>
             <p className="mt-3 text-sm text-[#6b604b]">Describe it. Get a suggested stack, milestones, and a task plan.</p>
-            <Link href="/dashboard" className="mt-auto inline-flex w-fit items-center gap-1 bg-[#923d29] px-5 py-3 text-sm font-semibold text-[#f1e6cb]">
+            <Link href="/mentor" className="mt-auto inline-flex w-fit items-center gap-1 bg-[#923d29] px-5 py-3 text-sm font-semibold text-[#f1e6cb]">
               Plan my idea <ArrowRight className="size-4" />
             </Link>
           </div>

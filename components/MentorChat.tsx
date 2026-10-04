@@ -8,7 +8,15 @@ type ChatMessage = {
   content: string;
 };
 
-export default function MentorChat({ plan }: { plan?: unknown }) {
+export default function MentorChat({
+  plan,
+  suggestions = [],
+  className = "rounded-lg border bg-background",
+}: {
+  plan?: unknown;
+  suggestions?: string[];
+  className?: string;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -74,8 +82,8 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
     }
   }
 
-  async function send() {
-    const text = input.trim();
+  async function send(override?: string) {
+    const text = (override ?? input).trim();
     if (!text || loading) return;
 
     const next: ChatMessage[] = [...messages, { role: "user", content: text }];
@@ -103,7 +111,7 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-background">
+    <div className={`flex h-full flex-col ${className}`}>
       <div className="border-b px-4 py-3 font-semibold">Mentor</div>
 
       {/* Hidden audio element bound to a direct user action / ref */}
@@ -143,6 +151,18 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
           <div className="text-sm text-muted-foreground">Mentor is thinking...</div>
         )}
         {error && <div className="text-sm text-red-500">{error}</div>}
+        {messages.length === 1 &&
+          suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => send(suggestion)}
+              disabled={loading}
+              className="block w-full border border-[#a99b7d] bg-[#fffdf5] px-3 py-2 text-left text-xs text-[#35291f] hover:bg-[#f6e8c5] disabled:opacity-60"
+            >
+              {suggestion}
+            </button>
+          ))}
         <div ref={bottomRef} />
       </div>
 
@@ -157,7 +177,7 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
           }}
           disabled={loading}
         />
-        <Button onClick={send} disabled={loading || !input.trim()}>
+        <Button onClick={() => send()} disabled={loading || !input.trim()}>
           Send
         </Button>
       </div>
