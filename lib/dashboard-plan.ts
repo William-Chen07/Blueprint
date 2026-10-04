@@ -91,6 +91,8 @@ export interface SavedProject {
   plan: DashboardPlan;
   hoursPerWeek: number;
   status: Record<string, TaskStatus>;
+  // The saved conversation this project came from, so progress can be logged.
+  conversationId?: string;
 }
 
 export const STORAGE_KEY = "blueprint-dashboard-project";
