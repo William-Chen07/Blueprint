@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Star } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getProject, getProjects } from "@/lib/github";
 import ProjectTaskBoard from "@/components/project-task-board";
@@ -26,6 +26,18 @@ export default async function ProjectGuidePage({ params }: { params: Promise<{ s
           <span className="bg-[#f6db70] px-3 py-2">{project.level}</span>
           <span className="bg-[#f6db70] px-3 py-2">{project.time}</span>
         </div>
+        <a
+          href={project.source.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-flex flex-wrap items-center gap-x-3 gap-y-1 border border-[#d8cfb8] px-4 py-3 font-mono text-xs text-[#5b594f] transition-colors hover:border-[#214dce]"
+        >
+          <span className="text-[#214dce]">github.com/{project.source.repo}</span>
+          <span>by {project.source.author}</span>
+          <span className="inline-flex items-center gap-1"><Star className="size-3" />{project.source.stars.toLocaleString()}</span>
+          <span>{project.source.language} · {project.source.license}</span>
+          <ArrowUpRight className="size-3 text-[#214dce]" />
+        </a>
         <section className="mt-10 grid gap-4 sm:grid-cols-2">
           <div className="bg-[#f6db70] p-5">
             <p className="font-mono text-[9px] uppercase tracking-[.2em]">Recommended deadline</p>

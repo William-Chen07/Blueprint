@@ -48,7 +48,7 @@ export default function ProjectFinder({ projects }: { projects: Project[] }) {
         </div>
       </div>
       <p className="mb-5 font-mono text-[10px] uppercase tracking-[.18em] text-[#eadcb9]">
-        {selected.length === 0 ? "Showing all five project ideas" : `Showing projects for ${selected.join(" + ")}`}
+        {selected.length === 0 ? `Showing all ${projects.length} projects` : `Showing projects for ${selected.join(" + ")}`}
       </p>
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {visibleProjects.map((project) => (

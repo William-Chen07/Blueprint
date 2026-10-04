@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Pin } from "lucide-react";
+import { Pin, Star } from "lucide-react";
+import type { GitHubSource } from "@/lib/github";
 
 export interface ProjectCardProps {
   category: string;
@@ -10,6 +11,7 @@ export interface ProjectCardProps {
   color: string;
   tilt: string;
   href?: string;
+  source?: GitHubSource;
 }
 
 export default function ProjectCard({
@@ -21,6 +23,7 @@ export default function ProjectCard({
   color,
   tilt,
   href = "/projects",
+  source,
 }: ProjectCardProps) {
   return (
     <Link
@@ -38,7 +41,15 @@ export default function ProjectCard({
       <p className="mt-5 text-xs leading-relaxed text-[#5b594f]">
         {description}
       </p>
-      <p className="mt-5 font-mono text-[9px] text-[#214dce]">
+      {source && (
+        <p className="mt-5 flex items-center gap-1.5 font-mono text-[9px] text-[#6d6a60]">
+          <span className="truncate">github.com/{source.repo}</span>
+          <span aria-hidden="true">·</span>
+          <Star className="size-3 shrink-0" aria-label="stars" />
+          {source.stars.toLocaleString()}
+        </p>
+      )}
+      <p className={`${source ? "mt-2" : "mt-5"} font-mono text-[9px] text-[#214dce]`}>
         {level} · {time} · Open brief →
       </p>
     </Link>
