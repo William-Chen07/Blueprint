@@ -19,11 +19,39 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  async function playAudio(text: string) {
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error("TTS API error:", errData);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = url;
+        await audioRef.current.play();
+      }
+    } catch (e) {
+      console.error("Audio playback failed:", e);
+    }
+  }
 
   async function send() {
     const text = input.trim();
@@ -43,7 +71,12 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
       });
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data = await res.json();
-      setMessages([...next, { role: "assistant", content: data.reply }]);
+      
+      const replyContent = data.reply;
+      setMessages([...next, { role: "assistant", content: replyContent }]);
+
+      // Automatically play the audio once the reply is received
+      playAudio(replyContent);
     } catch {
       setError("The mentor couldn't answer right now. Try again.");
     } finally {
@@ -54,6 +87,9 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-background">
       <div className="border-b px-4 py-3 font-semibold">Mentor</div>
+
+      {/* Hidden audio element bound to a direct user action / ref */}
+      <audio ref={audioRef} className="hidden" />
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((m, i) => (
@@ -70,6 +106,15 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
               }
             >
               {m.content}
+              {m.role === "assistant" && (
+                <button
+                  onClick={() => playAudio(m.content)}
+                  className="ml-2 inline-flex items-center text-xs opacity-70 hover:opacity-100"
+                  title="Listen to response"
+                >
+                  🔊 Listen
+                </button>
+              )}
             </div>
           </div>
         ))}
