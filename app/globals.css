@@ -155,9 +155,7 @@
 }
 
 .lighting-controls {
-  position: fixed;
-  top: 4.25rem;
-  right: 1rem;
+  position: static;
   z-index: 100;
   display: inline-flex;
   align-items: center;
@@ -173,21 +171,19 @@
   transition: background-color 160ms ease, color 160ms ease;
 }
 
-/* Keep Home's controls attached to the bulletin board's upper-right corner. */
-.flashlight-board:has(.home-board) .lighting-controls {
-  top: 5.75rem;
-  right: max(1rem, calc((100vw - 72rem) / 2 + 1rem));
+.navbar-tab-group {
+  width: max-content;
+}
+
+.navbar-case-label {
+  width: 50%;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 @media (max-width: 767px) {
   .lighting-controls {
-    top: 4.5rem;
-    right: .75rem;
-  }
-
-  .flashlight-board:has(.home-board) .lighting-controls {
-    top: 5.75rem;
-    right: .9rem;
+    gap: .2rem;
   }
 }
 

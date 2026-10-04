@@ -33,7 +33,7 @@ export default async function Home() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
-                href="/my-workspace"
+                href="/dashboard"
                 className={buttonVariants({
                 className: "bg-[#76301e] px-5 text-xs text-[#f5e9cc] hover:bg-[#5e2417]",
                 })}
