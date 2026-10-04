@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { RotateCcw } from "lucide-react";
 import MentorChat from "@/components/MentorChat";
 import { syncProjectStatus } from "@/lib/conversations";
+import { syncFinishedCustomProject } from "@/lib/portfolio";
 import {
   CHANGE_EVENT,
   STORAGE_KEY,
@@ -441,6 +442,7 @@ export default function ProjectDashboard() {
       else delete status[id];
       writeStored({ ...project, status });
       syncProjectStatus(project.conversationId, status);
+      syncFinishedCustomProject(project.conversationId ?? project.plan.projectName, project.plan, status);
     },
     [project],
   );
@@ -456,6 +458,7 @@ export default function ProjectDashboard() {
       });
       writeStored({ ...project, status });
       syncProjectStatus(project.conversationId, status);
+      syncFinishedCustomProject(project.conversationId ?? project.plan.projectName, project.plan, status);
     },
     [project],
   );

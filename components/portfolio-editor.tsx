@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import type { Project } from "@/lib/github";
+import { parseFinishedCustom, readFinishedCustomRaw, type FinishedCustomProject } from "@/lib/portfolio";
 
 interface PortfolioDetails {
   name: string;
@@ -42,6 +43,8 @@ function getFinishedProjects() {
 export default function PortfolioEditor({ projects }: { projects: Project[] }) {
   const savedDetails = useSyncExternalStore(subscribe, getSavedDetails, () => "");
   const savedFinished = useSyncExternalStore(subscribe, getFinishedProjects, () => "[]");
+  const savedCustom = useSyncExternalStore(subscribe, readFinishedCustomRaw, () => "");
+  const customProjects = useMemo(() => parseFinishedCustom(savedCustom), [savedCustom]);
   const savedProfile = useMemo(() => {
     if (!savedDetails) return defaultDetails;
     try {
@@ -116,7 +119,7 @@ export default function PortfolioEditor({ projects }: { projects: Project[] }) {
             <p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#76301e]">FIELD NOTES / IN PROGRESS</p>
             <h2 className="mt-6 font-serif text-3xl">Small steps. Real progress.</h2>
             <ol className="mt-6 space-y-4 text-sm">
-              <li>01 / Finished projects: {finishedProjects.length}</li>
+              <li>01 / Finished projects: {finishedProjects.length + customProjects.length}</li>
               <li>02 / Skills in my toolkit: {savedProfile.skills.split("·").filter(Boolean).length}</li>
               <li>03 / Keep learning by making.</li>
             </ol>
@@ -126,13 +129,14 @@ export default function PortfolioEditor({ projects }: { projects: Project[] }) {
         <section className="mt-10">
           <p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#c5b890]">SELECTED WORK / OPEN A CASE FILE</p>
           <h2 className="mt-4 font-serif text-2xl italic text-[#eadcb9]">A few things I&apos;ve made, and what I learned along the way.</h2>
-          {finishedProjects.length > 0 ? (
+          {finishedProjects.length + customProjects.length > 0 ? (
             <div className="mt-6 grid gap-5 md:grid-cols-3">
               {finishedProjects.map((project) => <FinishedProjectCard key={project.slug} project={project} />)}
+              {customProjects.map((project) => <CustomProjectCard key={project.id} project={project} />)}
             </div>
           ) : (
             <div className="mt-6 bg-[#d9cda8] p-6 text-sm shadow-[4px_6px_0_rgba(0,0,0,.3)]">
-              Finish every task in a project workspace and it will appear here.
+              Finish every task in a project workspace or your own project dashboard and it will appear here.
               <Link href="/projects" className="ml-2 font-semibold text-[#76301e] underline">Explore projects →</Link>
             </div>
           )}
@@ -156,6 +160,25 @@ function FinishedProjectCard({ project }: { project: Project }) {
       <p className="mt-3 text-sm leading-relaxed">{project.description}</p>
       <p className="mt-4 font-mono text-[9px] text-[#76301e]">{project.techStack.slice(0, 3).join(" · ")}</p>
       <Link href={`/projects/${project.slug}`} className="mt-5 inline-block font-serif text-sm italic text-[#76301e]">Open case file →</Link>
+    </article>
+  );
+}
+
+function CustomProjectCard({ project }: { project: FinishedCustomProject }) {
+  return (
+    <article className="bg-[#eadcb9] p-5 shadow-[5px_7px_0_rgba(0,0,0,.35)]">
+      <p className="font-mono text-[9px] uppercase text-[#76301e]">CASE FILE / MY OWN IDEA</p>
+      <div className="mt-4 flex h-20 items-center bg-[#c6b991] px-4 font-mono text-sm">{project.name}</div>
+      <h3 className="mt-5 font-serif text-2xl">{project.name}</h3>
+      <p className="mt-1 text-sm italic">{project.tagline}</p>
+      <p className="mt-3 text-sm leading-relaxed">{project.summary}</p>
+      <p className="mt-4 font-mono text-[9px] text-[#76301e]">{project.stack.slice(0, 3).join(" · ")}</p>
+      {project.skills.length > 0 && (
+        <p className="mt-2 text-xs">Skills practiced: {project.skills.join(", ")}</p>
+      )}
+      <p className="mt-4 font-mono text-[9px] text-[#76301e]">
+        Finished {new Date(project.finishedAt).toLocaleDateString()}
+      </p>
     </article>
   );
 }
