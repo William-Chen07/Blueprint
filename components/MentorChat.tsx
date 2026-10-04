@@ -19,6 +19,8 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [playingMessageIndex, setPlayingMessageIndex] = useState<number | null>(null);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -26,8 +28,22 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  async function playAudio(text: string) {
+  async function handleAudioToggle(text: string, index: number) {
+    if (!audioRef.current) return;
+
+    // If the same message is already playing, interrupt/pause it
+    if (playingMessageIndex === index && !audioRef.current.paused) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlayingMessageIndex(null);
+      return;
+    }
+
     try {
+      // If a different audio is playing, stop it first
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,19 +53,24 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
       if (!res.ok) {
         const errData = await res.json();
         console.error("TTS API error:", errData);
+        setPlayingMessageIndex(null);
         return;
       }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = url;
-        await audioRef.current.play();
-      }
+      audioRef.current.src = url;
+      setPlayingMessageIndex(index);
+      
+      audioRef.current.onended = () => {
+        setPlayingMessageIndex(null);
+      };
+
+      await audioRef.current.play();
     } catch (e) {
       console.error("Audio playback failed:", e);
+      setPlayingMessageIndex(null);
     }
   }
 
@@ -74,8 +95,6 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
       
       const replyContent = data.reply;
       setMessages([...next, { role: "assistant", content: replyContent }]);
-
-      // Audio is now manual-only via the 🔊 Listen button
     } catch {
       setError("The mentor couldn't answer right now. Try again.");
     } finally {
@@ -91,32 +110,35 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
       <audio ref={audioRef} className="hidden" />
 
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
-          >
+        {messages.map((m, i) => {
+          const isPlaying = playingMessageIndex === i;
+          return (
             <div
-              className={
-                "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm " +
-                (m.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted")
-              }
+              key={i}
+              className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
-              {m.content}
-              {m.role === "assistant" && (
-                <button
-                  onClick={() => playAudio(m.content)}
-                  className="ml-2 inline-flex items-center text-xs opacity-70 hover:opacity-100"
-                  title="Listen to response"
-                >
-                  🔊 Listen
-                </button>
-              )}
+              <div
+                className={
+                  "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm " +
+                  (m.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted")
+                }
+              >
+                {m.content}
+                {m.role === "assistant" && (
+                  <button
+                    onClick={() => handleAudioToggle(m.content, i)}
+                    className="ml-2 inline-flex items-center text-xs opacity-70 hover:opacity-100"
+                    title={isPlaying ? "Stop speech" : "Listen to response"}
+                  >
+                    {isPlaying ? "⏹️ Stop" : "🔊 Listen"}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {loading && (
           <div className="text-sm text-muted-foreground">Mentor is thinking...</div>
         )}
