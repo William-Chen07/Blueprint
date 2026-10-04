@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import MentorChat from "@/components/MentorChat";
 import type { Project } from "@/lib/github";
 
@@ -12,27 +12,42 @@ const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: "plan", label: "Plan & milestones" },
   { id: "guide", label: "Build guide" },
 ];
-const completedTaskSnapshots = new Map<string, { raw: string | null; value: string[] }>();
+const storedListSnapshots = new Map<string, { raw: string | null; value: string[] }>();
+const EMPTY: string[] = [];
 
 export default function ProjectWorkspace({ project }: { project: Project }) {
   const [tab, setTab] = useState<WorkspaceTab>("tasks");
-  const [status, setStatus] = useState<Record<string, "doing" | "done">>({});
   const [dragOver, setDragOver] = useState<string | null>(null);
-  const completed = project.tasks.filter((task) => status[task.title] === "done").map((task) => task.title);
+  const completedKey = `buildfolio-completed-tasks:${project.slug}`;
+  const doingKey = `buildfolio-doing-tasks:${project.slug}`;
+  const subscribe = (onStoreChange: () => void) => {
+    window.addEventListener("storage", onStoreChange);
+    return () => window.removeEventListener("storage", onStoreChange);
+  };
+  const completed = useSyncExternalStore(subscribe, () => getStoredList(completedKey), () => EMPTY);
+  const doing = useSyncExternalStore(subscribe, () => getStoredList(doingKey), () => EMPTY);
   const completedCount = completed.length;
   const columns = useMemo(() => [
-    { key: "todo", label: "TO DO", tasks: project.tasks.filter((task) => !status[task.title]) },
-    { key: "doing", label: "IN PROGRESS", tasks: project.tasks.filter((task) => status[task.title] === "doing") },
-    { key: "done", label: "DONE", tasks: project.tasks.filter((task) => status[task.title] === "done") },
-  ] as const, [status, project.tasks]);
+    { key: "todo", label: "TO DO", tasks: project.tasks.filter((task) => !completed.includes(task.title) && !doing.includes(task.title)) },
+    { key: "doing", label: "IN PROGRESS", tasks: project.tasks.filter((task) => doing.includes(task.title) && !completed.includes(task.title)) },
+    { key: "done", label: "DONE", tasks: project.tasks.filter((task) => completed.includes(task.title)) },
+  ] as const, [completed, doing, project.tasks]);
 
   function setTaskStatus(title: string, next: "doing" | "done" | null) {
-    setStatus((current) => {
-      const copy = { ...current };
-      if (next) copy[title] = next;
-      else delete copy[title];
-      return copy;
-    });
+    const nextCompleted = completed.filter((item) => item !== title);
+    const nextDoing = doing.filter((item) => item !== title);
+    if (next === "done") nextCompleted.push(title);
+    if (next === "doing") nextDoing.push(title);
+    window.localStorage.setItem(completedKey, JSON.stringify(nextCompleted));
+    window.localStorage.setItem(doingKey, JSON.stringify(nextDoing));
+
+    const finished = getStoredList("buildfolio-finished-projects");
+    const isFinished = nextCompleted.length === project.tasks.length;
+    const updatedFinished = isFinished
+      ? [...new Set([...finished, project.slug])]
+      : finished.filter((slug) => slug !== project.slug);
+    window.localStorage.setItem("buildfolio-finished-projects", JSON.stringify(updatedFinished));
+    window.dispatchEvent(new Event("storage"));
   }
 
   return (
@@ -224,27 +239,22 @@ export default function ProjectWorkspace({ project }: { project: Project }) {
   );
 }
 
-function getCompletedTasks(slug: string): string[] {
-  const stored = window.localStorage.getItem(`buildfolio-completed-tasks:${slug}`);
-  const cached = completedTaskSnapshots.get(slug);
+// Cached so useSyncExternalStore gets a stable array until the stored value changes.
+function getStoredList(key: string): string[] {
+  const stored = window.localStorage.getItem(key);
+  const cached = storedListSnapshots.get(key);
   if (cached?.raw === stored) return cached.value;
-  if (!stored) {
-    const value: string[] = [];
-    completedTaskSnapshots.set(slug, { raw: stored, value });
-    return value;
+  let value: string[] = [];
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")) value = parsed;
+    } catch {
+      value = [];
+    }
   }
-  try {
-    const parsed = JSON.parse(stored);
-    const value = Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
-      ? parsed
-      : [];
-    completedTaskSnapshots.set(slug, { raw: stored, value });
-    return value;
-  } catch {
-    const value: string[] = [];
-    completedTaskSnapshots.set(slug, { raw: stored, value });
-    return value;
-  }
+  storedListSnapshots.set(key, { raw: stored, value });
+  return value;
 }
 
 function SummaryCard({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
