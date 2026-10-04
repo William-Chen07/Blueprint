@@ -75,8 +75,7 @@ export default function MentorChat({ plan }: { plan?: unknown }) {
       const replyContent = data.reply;
       setMessages([...next, { role: "assistant", content: replyContent }]);
 
-      // Automatically play the audio once the reply is received
-      playAudio(replyContent);
+      // Audio is now manual-only via the 🔊 Listen button
     } catch {
       setError("The mentor couldn't answer right now. Try again.");
     } finally {
