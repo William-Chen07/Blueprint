@@ -1,25 +1,20 @@
 import Link from "next/link";
-import { ArrowRight, Paperclip, Pin } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import ProjectFinder from "@/components/project-finder";
-import FlashlightBoard from "@/components/flashlight-board";
 import { getProjects } from "@/lib/github";
 
 export default async function Home() {
   const projects = getProjects();
 
   return (
-    <main className="wood-texture min-h-screen overflow-hidden px-4 py-5 text-[#252525] sm:px-8 lg:px-12">
-      <FlashlightBoard>
-      <div className="mx-auto max-w-6xl rounded-lg border-4 border-[#34261c] bg-[rgba(16,12,10,.72)] p-4 shadow-[0_0_0_1px_rgba(221,189,128,.2),inset_0_0_28px_rgba(0,0,0,.7)] sm:p-6">
+    <main className="home-board wood-texture min-h-screen overflow-hidden px-4 py-5 text-[#252525] sm:px-8 lg:px-12">
+      <div className="board-frame mx-auto max-w-6xl rounded-lg border-4 border-[#34261c] bg-[rgba(16,12,10,.72)] p-4 shadow-[0_0_0_1px_rgba(221,189,128,.2),inset_0_0_28px_rgba(0,0,0,.7)] sm:p-6">
         <section className="grid gap-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <div className="relative -rotate-1 bg-[#e9dfc2] px-7 py-10 shadow-[8px_10px_0_rgba(0,0,0,.45)] sm:px-12 sm:py-14">
-            <div className="absolute -top-3 left-8 text-[#3d4644]">
-              <Paperclip className="size-12 -rotate-12 stroke-[1.2]" />
-            </div>
-            <div className="absolute -top-2 right-1/2 text-[#c83d35]">
-              <Pin className="size-5 fill-current" />
-            </div>
+            <Image src="/figma/asset-10.svg" alt="" width={40} height={69} className="absolute -left-1 -top-5 -rotate-12" />
+            <Image src="/figma/asset-08.svg" alt="" width={38} height={45} className="absolute -top-2 right-1/2" />
             <p className="mb-5 font-mono text-[9px] uppercase tracking-[.25em] text-[#55493c]">
               BUILD CLUB / FIELD NOTE NO. 061
             </p>
@@ -63,7 +58,7 @@ export default async function Home() {
               <div className="absolute left-12 top-12 h-36 w-56 rotate-[-4deg] border border-[#b8ae9d] bg-[#f7f0df] shadow-md" />
               <div className="absolute right-8 top-5 h-16 w-12 rotate-[-12deg] bg-[#f9dc68] shadow-md" />
               <div className="absolute bottom-8 left-7 h-14 w-24 rotate-[-15deg] bg-[#2166c9] shadow-md" />
-              <Paperclip className="absolute bottom-3 right-8 size-8 rotate-[-30deg] text-[#6e6e68]" />
+              <Image src="/figma/asset-10.svg" alt="" width={28} height={48} className="absolute bottom-3 right-8 rotate-[-30deg]" />
             </div>
             <div className="absolute bottom-3 right-2 rotate-[5deg] bg-[#214dce] px-5 py-3 font-mono text-sm italic text-white shadow-md">
               from &quot;what if&quot;
@@ -94,7 +89,7 @@ export default async function Home() {
             </p>
           </div>
           <div className="relative rotate-1 bg-[#eadcb9] px-7 py-6 shadow-[6px_8px_0_rgba(0,0,0,.4)] sm:px-10">
-            <Paperclip className="absolute -right-2 -top-7 size-12 rotate-12 text-[#3d4644]" />
+            <Image src="/figma/asset-10.svg" alt="" width={40} height={69} className="absolute -right-2 -top-7 rotate-12" />
             <p className="font-mono text-[8px] uppercase tracking-[.18em] text-[#55493c]">
               Make this board yours
             </p>
@@ -107,7 +102,6 @@ export default async function Home() {
           </div>
         </section>
       </div>
-      </FlashlightBoard>
     </main>
   );
 }

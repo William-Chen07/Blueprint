@@ -132,9 +132,12 @@
 .wood-texture {
   background-color: #17120f;
   background-image:
+    url("/figma/asset-01.svg"),
     radial-gradient(circle at 70% 35%, rgba(176, 106, 45, .22), transparent 28rem),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0, rgba(255, 255, 255, .025) 1px, transparent 1px, transparent 5px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0, rgba(0, 0, 0, .16) 2px, transparent 2px, transparent 88px);
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  background-size: cover, auto, auto, auto;
 }
 
 .flashlight-overlay {
@@ -149,4 +152,82 @@
     rgba(10, 8, 7, .74) 100%
   );
   transition: background-position 120ms ease-out;
+}
+
+.lighting-controls {
+  position: fixed;
+  top: 4.25rem;
+  right: 1rem;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid rgba(234, 220, 185, .45);
+  background: rgba(31, 22, 17, .86);
+  color: #eadcb9;
+  padding: .25rem;
+  font-family: var(--font-geist-mono);
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+/* Keep Home's controls attached to the bulletin board's upper-right corner. */
+.flashlight-board:has(.home-board) .lighting-controls {
+  top: 5.75rem;
+  right: max(1rem, calc((100vw - 72rem) / 2 + 1rem));
+}
+
+@media (max-width: 767px) {
+  .lighting-controls {
+    top: 4.5rem;
+    right: .75rem;
+  }
+
+  .flashlight-board:has(.home-board) .lighting-controls {
+    top: 5.75rem;
+    right: .9rem;
+  }
+}
+
+.lighting-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .55rem;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.lighting-controls button:hover,
+.lighting-controls button.active {
+  background: #76301e;
+  color: #fff4d6;
+}
+
+.flashlight-board {
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+.lighting-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.overlay-lamp {
+  background: radial-gradient(circle at 58% 35%, rgba(255, 220, 133, .2), rgba(10, 8, 7, .36) 62%, rgba(7, 6, 5, .62));
+}
+
+.overlay-flashlight {
+  background: radial-gradient(circle 185px at var(--flashlight-x) var(--flashlight-y), transparent 0, rgba(18, 13, 10, .08) 45%, rgba(10, 8, 7, .78) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashlight-board,
+  .lighting-controls,
+  .lighting-controls button {
+    transition: none;
+  }
 }
