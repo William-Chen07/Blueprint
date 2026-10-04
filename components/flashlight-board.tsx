@@ -35,7 +35,7 @@ export default function FlashlightBoard({ children }: FlashlightBoardProps) {
   const mode = useSyncExternalStore(
     subscribeToLightingMode,
     getSavedLightingMode,
-    () => "lamp",
+    () : LightingMode => "lamp",
   );
 
   return (
