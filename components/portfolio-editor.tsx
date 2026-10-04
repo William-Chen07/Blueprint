@@ -78,7 +78,7 @@ export default function PortfolioEditor({ projects }: { projects: Project[] }) {
             <h1 className="font-serif text-6xl leading-none text-[#eadcb9] sm:text-7xl">{savedProfile.name}</h1>
             <p className="mt-4 font-mono text-[10px] text-[#b9a77e]">{savedProfile.roles}</p>
           </div>
-          <button type="button" onClick={() => { setDraft(savedProfile); setEditing((current) => !current); }} className="bg-[#923d29] px-4 py-3 font-mono text-xs text-[#f1e6cb]">
+          <button type="button" onClick={() => { setDraft(savedProfile); setEditing((current) => !current); }} className="cursor-pointer bg-[#923d29] px-4 py-3 font-mono text-xs text-[#f1e6cb] transition-colors hover:bg-[#8a3a26]">
             {editing ? "Close editor" : "Edit my portfolio"}
           </button>
         </div>
@@ -93,7 +93,7 @@ export default function PortfolioEditor({ projects }: { projects: Project[] }) {
             <PortfolioInput label="GitHub URL" value={draft.github} onChange={(value) => setDraft({ ...draft, github: value })} />
             <PortfolioInput label="Resume URL" value={draft.resume} onChange={(value) => setDraft({ ...draft, resume: value })} />
             <PortfolioInput label="LinkedIn URL" value={draft.linkedin} onChange={(value) => setDraft({ ...draft, linkedin: value })} />
-            <button type="submit" className="w-fit bg-[#76301e] px-5 py-3 text-sm font-semibold text-[#f1e6cb]">Save details</button>
+            <button type="submit" className="w-fit cursor-pointer bg-[#76301e] px-5 py-3 text-sm font-semibold text-[#f1e6cb] transition-colors hover:bg-[#8a3a26]">Save details</button>
           </form>
         )}
 
