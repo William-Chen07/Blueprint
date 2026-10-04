@@ -71,7 +71,7 @@ function getStoredProfile() {
 
 export default function ProfilePage() {
   const storedProfile = useSyncExternalStore(subscribeToProfile, getStoredProfile, () => "");
-  const preferences = useMemo(() => {
+  const preferences = useMemo<typeof defaultPreferences>(() => {
     if (!storedProfile) return defaultPreferences;
     try {
       const parsed = JSON.parse(storedProfile);
