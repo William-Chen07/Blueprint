@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import type { Project } from "@/lib/github";
 
 type WorkspaceTab = "tasks" | "brief" | "plan" | "guide";
@@ -11,10 +11,18 @@ const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: "plan", label: "Plan & milestones" },
   { id: "guide", label: "Build guide" },
 ];
+const completedTaskSnapshots = new Map<string, { raw: string | null; value: string[] }>();
 
 export default function ProjectWorkspace({ project }: { project: Project }) {
   const [tab, setTab] = useState<WorkspaceTab>("tasks");
-  const [completed, setCompleted] = useState<string[]>([]);
+  const completed = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("storage", onStoreChange);
+      return () => window.removeEventListener("storage", onStoreChange);
+    },
+    () => getCompletedTasks(project.slug),
+    () => [],
+  );
   const completedCount = completed.length;
   const columns = useMemo(() => [
     { label: "TO DO", tasks: project.tasks.filter((task) => !completed.includes(task.title)).slice(0, 2) },
@@ -23,9 +31,27 @@ export default function ProjectWorkspace({ project }: { project: Project }) {
   ], [completed, project.tasks]);
 
   function toggleTask(title: string) {
-    setCompleted((current) =>
-      current.includes(title) ? current.filter((item) => item !== title) : [...current, title],
-    );
+    const next = completed.includes(title)
+      ? completed.filter((item) => item !== title)
+      : [...completed, title];
+    window.localStorage.setItem(`buildfolio-completed-tasks:${project.slug}`, JSON.stringify(next));
+
+    const stored = window.localStorage.getItem("buildfolio-finished-projects");
+    let finished: string[] = [];
+    try {
+      const parsed = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")) {
+        finished = parsed;
+      }
+    } catch {
+      finished = [];
+    }
+    const isFinished = next.length === project.tasks.length;
+    const updatedFinished = isFinished
+      ? [...new Set([...finished, project.slug])]
+      : finished.filter((slug) => slug !== project.slug);
+    window.localStorage.setItem("buildfolio-finished-projects", JSON.stringify(updatedFinished));
+    window.dispatchEvent(new Event("storage"));
   }
 
   return (
@@ -149,6 +175,29 @@ export default function ProjectWorkspace({ project }: { project: Project }) {
       </div>
     </main>
   );
+}
+
+function getCompletedTasks(slug: string): string[] {
+  const stored = window.localStorage.getItem(`buildfolio-completed-tasks:${slug}`);
+  const cached = completedTaskSnapshots.get(slug);
+  if (cached?.raw === stored) return cached.value;
+  if (!stored) {
+    const value: string[] = [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  }
+  try {
+    const parsed = JSON.parse(stored);
+    const value = Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+      ? parsed
+      : [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  } catch {
+    const value: string[] = [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  }
 }
 
 function SummaryCard({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {

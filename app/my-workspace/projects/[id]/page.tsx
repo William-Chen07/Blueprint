@@ -133,7 +133,7 @@ function DashboardContent({
           <ul className="project-task-list project-today-tasks">
             {dashboard.buildGuide.todayTasks.map((task) => <li key={task}><Check aria-hidden="true" />{task}</li>)}
           </ul>
-          <Link className="project-action" href="/my-workspace">Back to your notebook <ArrowRight aria-hidden="true" /></Link>
+          <Link className="project-action" href="/dashboard">Back to your notebook <ArrowRight aria-hidden="true" /></Link>
         </article>
         <article className="project-paper project-guidance">
           <span className="project-guidance-icon"><Lightbulb aria-hidden="true" /></span>
@@ -232,7 +232,7 @@ export default function ProjectDashboardPage() {
         ) : dashboard ? (
           <section className="project-dashboard-shell">
             <div className="project-dashboard-topline">
-              <Link href="/my-workspace" className="project-back-link"><ArrowLeft aria-hidden="true" /> Your notebook</Link>
+              <Link href="/dashboard" className="project-back-link"><ArrowLeft aria-hidden="true" /> Your notebook</Link>
               <span>PROJECT CASE FILE · {params.id.slice(0, 8).toUpperCase()}</span>
             </div>
             <div className="project-dashboard-heading">
@@ -264,7 +264,7 @@ export default function ProjectDashboardPage() {
             <p className="project-overline">CASE FILE NOT FOUND</p>
             <h1>This project notebook isn’t available here.</h1>
             <p>Project dashboards are saved in the browser where you created them. Start a new project to generate another one.</p>
-            <Link href="/my-workspace" className="project-action">Back to your notebook <ArrowRight aria-hidden="true" /></Link>
+            <Link href="/dashboard" className="project-action">Back to your notebook <ArrowRight aria-hidden="true" /></Link>
           </section>
         )}
       </div>

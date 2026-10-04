@@ -13,7 +13,7 @@ export default function WorkspaceHeader() {
           <span className="case-tab-label">CASE / 02</span>
           <span className="case-tab-body">Projects</span>
         </Link>
-        <Link href="/my-workspace" aria-current="page" className="case-tab active">
+        <Link href="/dashboard" aria-current="page" className="case-tab active">
           <span className="case-tab-label">CASE / 03</span>
           <span className="case-tab-body">Dashboard</span>
         </Link>
