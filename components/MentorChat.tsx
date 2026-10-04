@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import CoachReply, { type CoachData } from "@/components/coach-reply";
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+  data?: CoachData;
 };
 
 export default function MentorChat({
@@ -102,7 +104,7 @@ export default function MentorChat({
       const data = await res.json();
       
       const replyContent = data.reply;
-      setMessages([...next, { role: "assistant", content: replyContent }]);
+      setMessages([...next, { role: "assistant", content: replyContent, data: data.data }]);
     } catch {
       setError("The mentor couldn't answer right now. Try again.");
     } finally {
@@ -125,25 +127,44 @@ export default function MentorChat({
               key={i}
               className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
-              <div
-                className={
-                  "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm " +
-                  (m.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted")
-                }
-              >
-                {m.content}
-                {m.role === "assistant" && (
+              {m.role === "assistant" && m.data ? (
+                <div className="flex max-w-[92%] flex-col items-start gap-1">
+                  <CoachReply
+                    data={m.data}
+                    isLast={i === messages.length - 1}
+                    disabled={loading}
+                    onAnswer={(answer) => send(answer)}
+                    fullWidth
+                  />
                   <button
                     onClick={() => handleAudioToggle(m.content, i)}
-                    className="ml-2 inline-flex items-center text-xs opacity-70 hover:opacity-100"
+                    className="text-xs opacity-70 hover:opacity-100"
                     title={isPlaying ? "Stop speech" : "Listen to response"}
                   >
                     {isPlaying ? "⏹️ Stop" : "🔊 Listen"}
                   </button>
-                )}
-              </div>
+                </div>
+              ) : (
+              <div
+                  className={
+                    "max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm " +
+                    (m.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted")
+                  }
+                >
+                  {m.content}
+                  {m.role === "assistant" && (
+                    <button
+                      onClick={() => handleAudioToggle(m.content, i)}
+                      className="ml-2 inline-flex items-center text-xs opacity-70 hover:opacity-100"
+                      title={isPlaying ? "Stop speech" : "Listen to response"}
+                    >
+                      {isPlaying ? "⏹️ Stop" : "🔊 Listen"}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

@@ -9,6 +9,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 type Level = "Beginner" | "Intermediate" | "Advanced";
 
 type Project = {
+  emoji: string;
   title: string;
   tagline: string;
   description: string;
@@ -59,6 +60,7 @@ function toProject(raw: unknown): Project | null {
   }
 
   return {
+    emoji: isStr(p.emoji) ? (p.emoji as string) : "✨",
     title: p.title as string,
     tagline: p.tagline as string,
     description: p.description as string,
@@ -120,7 +122,7 @@ function formatReply(d: CoachResponse): string {
   if (d.project) {
     const p = d.project;
     parts.push(
-      `${p.title}\n${p.tagline}`,
+      `${p.emoji} ${p.title}\n${p.tagline}`,
       p.description,
       `Tech stack: ${p.tech_stack.join(", ")}\nExperience level: ${p.experience_level}\nEstimated time: ${p.estimated_time}`,
       `Project overview:\n${p.overview}`,
@@ -216,6 +218,13 @@ APPLICATION CONTEXT:
       console.warn(`[chat] attempt ${attempt + 1}: response failed validation`);
     } catch (err) {
       console.error(`[chat] attempt ${attempt + 1} error:`, err);
+      // Out of quota: retrying only burns another request.
+      if ((err as { status?: number })?.status === 429) {
+        return NextResponse.json(
+          { error: "The mentor has hit its daily Gemini limit. Please try again later." },
+          { status: 429 },
+        );
+      }
     }
   }
 

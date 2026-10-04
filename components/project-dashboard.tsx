@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
-import { Loader2, RotateCcw, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { RotateCcw } from "lucide-react";
 import MentorChat from "@/components/MentorChat";
+import { syncProjectStatus } from "@/lib/conversations";
 import {
   CHANGE_EVENT,
   STORAGE_KEY,
@@ -11,7 +13,6 @@ import {
   writeStored,
   type SavedProject,
   type DashboardPlan,
-  type Experience,
   type TaskStatus,
 } from "@/lib/dashboard-plan";
 
@@ -22,12 +23,6 @@ const tabs: Array<{ id: Tab; label: string }> = [
   { id: "brief", label: "Brief & setup" },
   { id: "plan", label: "Plan & milestones" },
   { id: "guide", label: "Build guide" },
-];
-
-const experienceOptions: Array<{ value: Experience; label: string }> = [
-  { value: "starting", label: "Just starting" },
-  { value: "building", label: "Built a few things" },
-  { value: "experienced", label: "Experienced" },
 ];
 
 function subscribe(onChange: () => void) {
@@ -54,131 +49,21 @@ function parseProject(raw: string): SavedProject | null {
   try {
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
-    const { plan, status, hoursPerWeek } = parsed as Record<string, unknown>;
+    const { plan, status, hoursPerWeek, conversationId } = parsed as Record<string, unknown>;
     if (!isDashboardPlan(plan) || typeof status !== "object" || status === null) return null;
     const cleaned: Record<string, TaskStatus> = {};
     for (const [id, value] of Object.entries(status)) {
       if (value === "doing" || value === "done") cleaned[id] = value;
     }
-    return { plan, status: cleaned, hoursPerWeek: typeof hoursPerWeek === "number" ? hoursPerWeek : 4 };
+    return {
+      plan,
+      status: cleaned,
+      hoursPerWeek: typeof hoursPerWeek === "number" ? hoursPerWeek : 4,
+      conversationId: typeof conversationId === "string" ? conversationId : undefined,
+    };
   } catch {
     return null;
   }
-}
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#76301e]">{children}</p>;
-}
-
-function Generator({ onCreated }: { onCreated: (plan: DashboardPlan, hoursPerWeek: number) => void }) {
-  const [idea, setIdea] = useState("");
-  const [experience, setExperience] = useState<Experience>("starting");
-  const [hoursPerWeek, setHoursPerWeek] = useState(4);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function generate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (loading) return;
-    setLoading(true);
-    setError("");
-    try {
-      const response = await fetch("/api/dashboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, experience, hoursPerWeek }),
-      });
-      const result = (await response.json()) as { plan?: unknown; error?: unknown };
-      if (!response.ok || !isDashboardPlan(result.plan)) {
-        throw new Error(
-          typeof result.error === "string" ? result.error : "Couldn't generate a plan. Please try again.",
-        );
-      }
-      onCreated(result.plan, hoursPerWeek);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Couldn't generate a plan.");
-      setLoading(false);
-    }
-  }
-
-  return (
-    <form
-      onSubmit={generate}
-      className="mx-auto max-w-2xl bg-[#eadcb9] p-6 shadow-[6px_8px_0_rgba(0,0,0,.4)] sm:p-8"
-    >
-      <Eyebrow>START A PROJECT</Eyebrow>
-      <h2 className="mt-3 font-serif text-3xl italic text-[#35291f]">Let&apos;s find your first project.</h2>
-      <p className="mt-2 text-sm text-[#6b604b]">
-        Share a spark, or leave it blank and we&apos;ll suggest an idea. You&apos;ll get a brief, a task board,
-        milestones, and a mentor to ask along the way.
-      </p>
-      <label htmlFor="dashboard-idea" className="mt-5 block font-mono text-[10px] uppercase tracking-[.15em] text-[#55493c]">
-        Your idea (optional)
-      </label>
-      <textarea
-        id="dashboard-idea"
-        value={idea}
-        onChange={(event) => setIdea(event.target.value)}
-        maxLength={1000}
-        rows={3}
-        placeholder="A tool for splitting group chores, a tiny game, something for my campus club..."
-        className="mt-1.5 w-full resize-none border border-[#a99b7d] bg-[#fffdf5] p-3 text-sm text-[#35291f] outline-none focus:border-[#76301e]"
-      />
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="dashboard-experience" className="block font-mono text-[10px] uppercase tracking-[.15em] text-[#55493c]">
-            Experience
-          </label>
-          <select
-            id="dashboard-experience"
-            value={experience}
-            onChange={(event) => setExperience(event.target.value as Experience)}
-            className="mt-1.5 w-full border border-[#a99b7d] bg-[#fffdf5] p-2.5 text-sm text-[#35291f]"
-          >
-            {experienceOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="dashboard-hours" className="block font-mono text-[10px] uppercase tracking-[.15em] text-[#55493c]">
-            Time available: {hoursPerWeek} h / week
-          </label>
-          <input
-            id="dashboard-hours"
-            type="range"
-            min={1}
-            max={20}
-            value={hoursPerWeek}
-            onChange={(event) => setHoursPerWeek(Number(event.target.value))}
-            className="mt-3.5 w-full accent-[#76301e]"
-          />
-        </div>
-      </div>
-      {error && (
-        <p role="alert" className="mt-4 text-sm text-[#923d29]">
-          {error}
-        </p>
-      )}
-      <button
-        type="submit"
-        disabled={loading}
-        className="mt-6 inline-flex items-center gap-2 bg-[#923d29] px-5 py-3 text-sm font-semibold text-[#f1e6cb] hover:bg-[#76301e] disabled:opacity-70"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="size-4 animate-spin" /> Sketching your plan...
-          </>
-        ) : (
-          <>
-            <Sparkles className="size-4" /> {idea.trim() ? "Generate my project plan" : "Surprise me with an idea"}
-          </>
-        )}
-      </button>
-    </form>
-  );
 }
 
 function StatCard({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
@@ -541,6 +426,12 @@ export default function ProjectDashboard() {
   const [tab, setTab] = useState<Tab>("tasks");
   const stored = useSyncExternalStore(subscribe, readStored, () => LOADING);
   const project = useMemo(() => parseProject(stored), [stored]);
+  const router = useRouter();
+
+  // No saved project: the idea conversation lives on /mentor.
+  useEffect(() => {
+    if (stored !== LOADING && !project) router.replace("/mentor");
+  }, [stored, project, router]);
 
   const setStatus = useCallback(
     (id: string, next: TaskStatus | null) => {
@@ -549,6 +440,7 @@ export default function ProjectDashboard() {
       if (next) status[id] = next;
       else delete status[id];
       writeStored({ ...project, status });
+      syncProjectStatus(project.conversationId, status);
     },
     [project],
   );
@@ -563,6 +455,7 @@ export default function ProjectDashboard() {
         else delete status[id];
       });
       writeStored({ ...project, status });
+      syncProjectStatus(project.conversationId, status);
     },
     [project],
   );
@@ -571,6 +464,7 @@ export default function ProjectDashboard() {
     if (window.confirm("Start a new project? Your current plan and progress will be cleared.")) {
       writeStored(null);
       setTab("tasks");
+      router.push("/mentor");
     }
   }
 
@@ -611,14 +505,9 @@ export default function ProjectDashboard() {
             Opening your workspace…
           </p>
         ) : !plan ? (
-          <div className="mt-10">
-            <Generator
-              onCreated={(created, hoursPerWeek) => {
-                writeStored({ plan: created, hoursPerWeek, status: {} });
-                setTab("tasks");
-              }}
-            />
-          </div>
+          <p role="status" className="mt-10 font-mono text-xs text-[#c5b890]">
+            Taking you to a fresh blueprint…
+          </p>
         ) : (
           <>
             <div className="mt-10 grid gap-6 md:grid-cols-3">

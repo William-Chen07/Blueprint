@@ -9,7 +9,7 @@ import { LightingControls } from "@/components/flashlight-board";
 const links = [
   { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/mentor", label: "Dashboard", also: "/dashboard" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/community", label: "Community" },
 ];
@@ -17,7 +17,8 @@ const links = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string, also?: string) =>
+    [href, also].some((base) => base && (pathname === base || pathname.startsWith(`${base}/`)));
 
   return (
     <header className="relative z-50 bg-[#17120f] px-4 pt-3 text-[#211b15] sm:px-8 lg:px-12">
@@ -37,7 +38,7 @@ export default function Navbar() {
 
         <div className="ml-2 hidden items-end gap-0 md:flex">
           {links.slice(1).map((l, index) => {
-            const active = isActive(l.href);
+            const active = isActive(l.href, l.also);
             return (
             <div key={l.href} className="navbar-tab-group flex flex-col items-start gap-0.5">
               <span
@@ -86,9 +87,9 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              aria-current={isActive(l.href) ? "page" : undefined}
+              aria-current={isActive(l.href, l.also) ? "page" : undefined}
               className={`border-l border-[#17120f] px-4 py-2 ${
-                isActive(l.href) ? "bg-[#b9ab88] text-[#76301e]" : "bg-[#9c8f73]"
+                isActive(l.href, l.also) ? "bg-[#b9ab88] text-[#76301e]" : "bg-[#9c8f73]"
               }`}
             >
               {l.label}
