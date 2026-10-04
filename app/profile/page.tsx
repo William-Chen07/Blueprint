@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import FlashlightBoard from "@/components/flashlight-board";
 
 const interests = ["Web development", "Data science", "Design", "AI", "Cybersecurity", "Game development"];
 const skills = ["Python", "HTML + CSS", "Figma"];
@@ -25,7 +24,6 @@ export default function ProfilePage() {
 
   return (
     <main className="wood-texture min-h-screen px-4 py-8 text-[#25221c] sm:px-8 lg:px-12">
-      <FlashlightBoard>
         <div className="mx-auto max-w-6xl pb-12">
           <p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#c5b890]">
             STEP 01 OF 02 · MAKE IT YOURS
@@ -154,7 +152,6 @@ export default function ProfilePage() {
             </aside>
           </div>
         </div>
-      </FlashlightBoard>
     </main>
   );
 }
