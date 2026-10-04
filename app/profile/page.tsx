@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useMemo, useSyncExternalStore } from "react";
 
 const interests = [
   "Web development",
@@ -52,32 +52,67 @@ const paceOptions = [
   { value: 8, label: "FOCUSED", text: "8 hrs / week" },
 ];
 
-export default function ProfilePage() {
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [skillChoice, setSkillChoice] = useState("");
-  const [experience, setExperience] = useState("starting");
-  const [hours, setHours] = useState(4);
+const PROFILE_STORAGE_KEY = "buildfolio-profile-preferences";
+const defaultPreferences = {
+  interests: [] as string[],
+  skills: [] as string[],
+  experience: "starting",
+  hours: 4,
+};
 
-  useEffect(() => {
-    window.localStorage.setItem("buildfolio-interests", JSON.stringify(selectedInterests));
-  }, [selectedInterests]);
+function subscribeToProfile(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+function getStoredProfile() {
+  return window.localStorage.getItem(PROFILE_STORAGE_KEY) ?? "";
+}
+
+export default function ProfilePage() {
+  const storedProfile = useSyncExternalStore(subscribeToProfile, getStoredProfile, () => "");
+  const preferences = useMemo(() => {
+    if (!storedProfile) return defaultPreferences;
+    try {
+      const parsed = JSON.parse(storedProfile);
+      return {
+        interests: Array.isArray(parsed.interests) ? parsed.interests.filter((item: unknown): item is string => typeof item === "string") : [],
+        skills: Array.isArray(parsed.skills) ? parsed.skills.filter((item: unknown): item is string => typeof item === "string") : [],
+        experience: typeof parsed.experience === "string" ? parsed.experience : defaultPreferences.experience,
+        hours: typeof parsed.hours === "number" ? parsed.hours : defaultPreferences.hours,
+      };
+    } catch {
+      return defaultPreferences;
+    }
+  }, [storedProfile]);
+  const selectedInterests = preferences.interests;
+  const selectedSkills = preferences.skills;
+  const experience = preferences.experience;
+  const hours = preferences.hours;
+
+  function savePreferences(next: typeof defaultPreferences) {
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(next));
+    window.localStorage.setItem("buildfolio-interests", JSON.stringify(next.interests));
+    window.dispatchEvent(new Event("storage"));
+  }
 
   function toggleInterest(interest: string) {
-    setSelectedInterests((current) =>
-      current.includes(interest)
-        ? current.filter((item) => item !== interest)
-        : [...current, interest],
-    );
+    savePreferences({
+      ...preferences,
+      interests: selectedInterests.includes(interest)
+        ? selectedInterests.filter((item) => item !== interest)
+        : [...selectedInterests, interest],
+    });
   }
 
   function addSkill(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const skillChoice = String(new FormData(event.currentTarget).get("skillChoice") ?? "");
     if (!skillChoice || selectedSkills.includes(skillChoice)) {
       return;
     }
-    setSelectedSkills((current) => [...current, skillChoice]);
-    setSkillChoice("");
+    savePreferences({ ...preferences, skills: [...selectedSkills, skillChoice] });
+    event.currentTarget.reset();
   }
 
   return (
@@ -138,7 +173,7 @@ export default function ProfilePage() {
                       name="experience"
                       value={option.value}
                       checked={experience === option.value}
-                      onChange={() => setExperience(option.value)}
+                      onChange={() => savePreferences({ ...preferences, experience: option.value })}
                       className="sr-only"
                     />
                     <span aria-hidden="true" className="mr-2 text-[12px]">
@@ -166,7 +201,7 @@ export default function ProfilePage() {
                   <button
                     key={skill}
                     type="button"
-                    onClick={() => setSelectedSkills((current) => current.filter((item) => item !== skill))}
+                    onClick={() => savePreferences({ ...preferences, skills: selectedSkills.filter((item) => item !== skill) })}
                     aria-label={`Remove ${skill}`}
                     className="flex h-[58px] flex-col items-stretch text-left font-mono text-[13px]"
                   >
@@ -186,8 +221,8 @@ export default function ProfilePage() {
                   <span className="sr-only">Choose a language or tool</span>
                   <span className="relative min-w-0 flex-1">
                     <select
-                      value={skillChoice}
-                      onChange={(event) => setSkillChoice(event.target.value)}
+                      name="skillChoice"
+                      defaultValue=""
                       className="h-9 w-full cursor-pointer appearance-none border border-[#b8a47e] bg-[#ebdebd] px-3 pr-9 font-mono text-[13px] text-[#2b2014] outline-none transition-colors focus:border-[#702b1a] focus:ring-1 focus:ring-[#702b1a]"
                     >
                       <option value="">Choose a language or tool…</option>
@@ -206,7 +241,7 @@ export default function ProfilePage() {
                 </label>
                 <button
                   type="submit"
-                  disabled={!skillChoice}
+                  disabled={selectedSkills.length >= skillGroups.reduce((total, group) => total + group.skills.length, 0)}
                   className="h-[46px] w-[126px] shrink-0 bg-[#702b1a] font-mono text-[14px] text-[#ebdebd] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Add +
@@ -225,7 +260,7 @@ export default function ProfilePage() {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setHours(option.value)}
+                      onClick={() => savePreferences({ ...preferences, hours: option.value })}
                       aria-pressed={active}
                       className="flex h-[58px] flex-col items-stretch text-left font-mono text-[13px]"
                     >

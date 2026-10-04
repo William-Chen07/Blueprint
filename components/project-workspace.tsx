@@ -12,6 +12,7 @@ const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: "plan", label: "Plan & milestones" },
   { id: "guide", label: "Build guide" },
 ];
+const completedTaskSnapshots = new Map<string, { raw: string | null; value: string[] }>();
 
 export default function ProjectWorkspace({ project }: { project: Project }) {
   const [tab, setTab] = useState<WorkspaceTab>("tasks");
@@ -221,6 +222,29 @@ export default function ProjectWorkspace({ project }: { project: Project }) {
       </div>
     </main>
   );
+}
+
+function getCompletedTasks(slug: string): string[] {
+  const stored = window.localStorage.getItem(`buildfolio-completed-tasks:${slug}`);
+  const cached = completedTaskSnapshots.get(slug);
+  if (cached?.raw === stored) return cached.value;
+  if (!stored) {
+    const value: string[] = [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  }
+  try {
+    const parsed = JSON.parse(stored);
+    const value = Array.isArray(parsed) && parsed.every((item): item is string => typeof item === "string")
+      ? parsed
+      : [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  } catch {
+    const value: string[] = [];
+    completedTaskSnapshots.set(slug, { raw: stored, value });
+    return value;
+  }
 }
 
 function SummaryCard({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
