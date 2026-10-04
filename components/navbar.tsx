@@ -16,29 +16,36 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="border-b">
-      <nav className="flex items-center justify-between px-6 py-4 md:grid md:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" className="text-xl font-bold">
-          Blueprint
+    <header className="relative z-50 bg-[#17120f] px-4 pt-3 text-[#211b15] sm:px-8 lg:px-12">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 font-mono text-[10px] uppercase tracking-[.05em]">
+        <Link href="/" className="bg-[#eadcb9] px-3 py-2 font-serif text-lg font-bold normal-case tracking-normal">
+          buildfolio.
         </Link>
 
-        {/* desktop links: hidden on small screens */}
-        <div className="hidden md:flex justify-center gap-6 whitespace-nowrap">
-          {links.map((l) => (
-            <Link key={l.href} href={l.href}>{l.label}</Link>
+        <div className="hidden items-center gap-px md:flex">
+          {links.slice(1).map((l, index) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={`bg-[#eadcb9] px-5 py-2 transition-colors hover:bg-[#f6e8c5] ${index === 0 ? "border-l border-[#17120f]" : ""}`}
+            >
+              {l.label}
+            </Link>
           ))}
         </div>
 
-        <div className="flex items-center gap-3 md:justify-self-end">
-          <Link href="/profile">
-            <Avatar className="size-10">
+        <div className="flex items-center gap-3">
+          <Link href="/profile" className="bg-[#76301e] px-5 py-2 text-[#eadcb9]">
+            Your profile ↗
+          </Link>
+          <Link href="/profile" className="hidden md:block">
+            <Avatar className="size-8 border-[#eadcb9]">
               <AvatarImage src="/avatar.png" alt="Your profile" />
               <AvatarFallback>W</AvatarFallback>
             </Avatar>
           </Link>
-          {/* hamburger: only on small screens */}
           <button
-            className="md:hidden"
+            className="text-[#eadcb9] md:hidden"
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
@@ -47,9 +54,8 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* mobile dropdown */}
       {open && (
-        <div className="flex flex-col gap-4 px-6 pb-4 md:hidden">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-2 py-4 text-[#eadcb9] md:hidden">
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>
               {l.label}

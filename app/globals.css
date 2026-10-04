@@ -122,9 +122,31 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#17120f] text-foreground;
   }
   html {
     @apply font-sans;
   }
+}
+
+.wood-texture {
+  background-color: #17120f;
+  background-image:
+    radial-gradient(circle at 70% 35%, rgba(176, 106, 45, .22), transparent 28rem),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0, rgba(255, 255, 255, .025) 1px, transparent 1px, transparent 5px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0, rgba(0, 0, 0, .16) 2px, transparent 2px, transparent 88px);
+}
+
+.flashlight-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 185px at var(--flashlight-x) var(--flashlight-y),
+    transparent 0,
+    rgba(18, 13, 10, .08) 45%,
+    rgba(10, 8, 7, .74) 100%
+  );
+  transition: background-position 120ms ease-out;
 }
