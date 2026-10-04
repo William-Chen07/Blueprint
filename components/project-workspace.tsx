@@ -15,15 +15,16 @@ const tabs: Array<{ id: WorkspaceTab; label: string }> = [
 const storedListSnapshots = new Map<string, { raw: string | null; value: string[] }>();
 const EMPTY: string[] = [];
 
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}
+
 export default function ProjectWorkspace({ project }: { project: Project }) {
   const [tab, setTab] = useState<WorkspaceTab>("tasks");
   const [dragOver, setDragOver] = useState<string | null>(null);
   const completedKey = `buildfolio-completed-tasks:${project.slug}`;
   const doingKey = `buildfolio-doing-tasks:${project.slug}`;
-  const subscribe = (onStoreChange: () => void) => {
-    window.addEventListener("storage", onStoreChange);
-    return () => window.removeEventListener("storage", onStoreChange);
-  };
   const completed = useSyncExternalStore(subscribe, () => getStoredList(completedKey), () => EMPTY);
   const doing = useSyncExternalStore(subscribe, () => getStoredList(doingKey), () => EMPTY);
   const completedCount = completed.length;
