@@ -1,9 +1,5 @@
-import ChatLauncher from "@/components/ChatLauncher";
+import ProjectDashboard from "@/components/project-dashboard";
 
 export default function DashboardPage() {
-  return (
-    <>
-      <ChatLauncher />
-    </>
-  );
+  return <ProjectDashboard />;
 }
