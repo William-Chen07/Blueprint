@@ -6,8 +6,6 @@ Blueprint helps beginners go from "I want to build something" to a finished proj
 
 Built for RowdyHacks in 24 hours.
 
-**Live demo:** https://149-28-248-246.sslip.io
-
 ---
 
 ## The problem
