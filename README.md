@@ -162,3 +162,10 @@ This pulls `main`, installs dependencies from the lockfile, rebuilds, and restar
 - A real database so progress syncs across devices
 - Difficulty ratings for projects and smarter recommendations
 - A mentor that reads the user's actual repo and gives code-aware feedback
+
+## Contributors
+
+- **Hailey Muñiz** — UI/UX Design & AI Interaction Design
+- **William Chen** — [main contributions]
+- **Vian Chen** — [main contributions]
+- **Nolan Chatten** — Backend Development, GitHub and ElevenLabs integrations, and Vultr deployment with HTTPS and automated deployment.
