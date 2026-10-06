@@ -32,6 +32,12 @@ Blueprint turns a vague interest into a concrete, finishable project:
 
 <!-- Team: update this list so it only describes what is actually merged and working before submitting. -->
 
+## Design & AI Interaction
+
+Blueprint's UI/UX was designed in **Figma** around the hackathon's heist theme, using a retro security-system aesthetic across the application's layouts, components, and user flows.
+
+The Gemini experience was built around a **structured JSON prompt**, iteratively refined to make the AI act as a project mentor rather than simply provide answers. The structure organizes generated milestones, tasks, skills, timelines, and tech-stack recommendations for the dashboard.
+
 ## Tech stack
 
 | Layer | Tools |
