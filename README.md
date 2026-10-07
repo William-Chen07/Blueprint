@@ -166,6 +166,6 @@ This pulls `main`, installs dependencies from the lockfile, rebuilds, and restar
 ## Contributors
 
 - **Hailey Muñiz** — UI/UX Design & AI Interaction Design
-- **William Chen** — [main contributions]
-- **Vian Chen** — [main contributions]
+- **William Chen** — Frontend Development, implementing Figma designs, and setting up the Figma MCP server
+- **Vian Chen** — Full-Stack Development, Gemini integration, GitHub project scraping, and the personalized project creator
 - **Nolan Chatten** — Backend Development, GitHub and ElevenLabs integrations, and Vultr deployment with HTTPS and automated deployment.
