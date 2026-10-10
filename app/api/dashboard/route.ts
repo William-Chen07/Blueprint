@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { isDashboardPlan, type Experience } from "@/lib/dashboard-plan";
+import { ratelimit, getClientKey } from "@/lib/ratelimit";
 
 const EXPERIENCE_LABELS: Record<Experience, string> = {
   starting: "just starting out",
@@ -30,6 +31,14 @@ const SCHEMA_DESCRIPTION = `Return ONLY a JSON object with exactly this shape (n
 Every string must be under 500 characters.`;
 
 export async function POST(req: Request) {
+  const { success, remaining, resetAt } = ratelimit(getClientKey(req));
+  if (!success) {
+    return NextResponse.json(
+      { error: "Rate limited. Try again in a minute." },
+      { status: 429, headers: { "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": String(resetAt) } }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Plan generation is not configured" }, { status: 500 });

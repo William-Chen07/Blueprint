@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import coach from "@/lib/project-coach.json";
+import { ratelimit, getClientKey } from "@/lib/ratelimit";
 
 const MAX_MESSAGES = 20;
 const MAX_CHARS = 2000;
@@ -137,6 +138,14 @@ function formatReply(d: CoachResponse): string {
 }
 
 export async function POST(req: Request) {
+  const { success, remaining, resetAt } = ratelimit(getClientKey(req));
+  if (!success) {
+    return NextResponse.json(
+      { error: "Rate limited. Try again in a minute." },
+      { status: 429, headers: { "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": String(resetAt) } }
+    );
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Mentor is not configured" }, { status: 500 });
